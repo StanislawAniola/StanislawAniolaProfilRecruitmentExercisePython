@@ -2,10 +2,6 @@ import requests
 import json
 from datetime import datetime, timedelta, date
 import dateutil.parser
-from dateutil.relativedelta import relativedelta
-
-from collections import OrderedDict
-import operator
 
 from peewee import *
 
@@ -52,8 +48,8 @@ class PrepareDate:
     :return: processed data in list of dict
     """
 
-    def __init__(self, data_after_process):
-        self.data_after_process = data_from_file
+    def __init__(self, raw_data):
+        self.raw_data = raw_data
 
 
     def birthday_days_left(self, file_data):
@@ -119,7 +115,7 @@ class PrepareDate:
         return file_data
 
     def get_prepared_data(self):
-        clean_birthday = PrepareDate(data_from_file).birthday_days_left(self.data_after_process)
+        clean_birthday = PrepareDate(data_from_file).birthday_days_left(self.raw_data)
         clean_phone_number = PrepareDate(data_from_file).phone_number_clean(clean_birthday)
         clean_picture = PrepareDate(data_from_file).remove_picture(clean_phone_number)
 
@@ -131,10 +127,10 @@ data_clean = PrepareDate(data_from_file).get_prepared_data()
 # #########################################
 class SimplifyDataStructure:
 
-    def __init__(self, processed_data):
+    def __init__(self):
         self.processed_data = data_clean
 
-    def prepare_data_to_database(self, data_after_process):
+    def prepare_data_to_database(self, data_after_clean):
         """
         prepare data to be simple to put to the database
         :param clean_data: list of dicts after being processed
@@ -142,7 +138,7 @@ class SimplifyDataStructure:
         """
         main_list = []
 
-        for dic in data_after_process['results']:
+        for dic in data_after_clean['results']:
             s_dict = {}
             for k, v in dic.items():
                 if not isinstance(v, dict):
@@ -169,10 +165,10 @@ class SimplifyDataStructure:
         return main_list
 
     def get_simp_data_str(self):
-        simp_ready_data = SimplifyDataStructure(data_clean).prepare_data_to_database(self.processed_data)
+        simp_ready_data = SimplifyDataStructure().prepare_data_to_database(self.processed_data)
         return simp_ready_data
 
-simp_data_struct = SimplifyDataStructure(data_clean).get_simp_data_str()
+simp_data_struct = SimplifyDataStructure().get_simp_data_str()
 
 
 # #########################################
@@ -265,8 +261,6 @@ class DatabaseOperations:
         """
         click.echo('initializing database')
         db_test.connect()
-        # Person = Table('person', ('id', 'first', 'last'))
-        # Person = Person.bind(db_test)
         db_test.create_tables([Person], safe=True)
         db_test.close()
 
@@ -280,14 +274,14 @@ class DatabaseOperations:
         """
         # print(ready_data[0])
         click.echo('inserting data to Person table')
-        for i in self.data_str:
-            Person.insert_many(i).execute()
+        for row in self.data_str:
+            Person.insert_many(row).execute()
 
     # insert_data()
 
 
     # ######################################### ZAD1
-    def gender_perc(self):
+    def gender_percentage(self):
         """
         showing and counting percentage of males and females in data
         :return:
@@ -311,14 +305,14 @@ class DatabaseOperations:
         click.echo(result)
 
 
-    # print(gender_perc())
+    # print(gender_percentage())
 
     # print('\n')
 
 
     # ######################################### ZAD 2
 
-    def average_age(self, genderr):
+    def average_age(self, gen_call):
         """
         showing and counting average age of males/ females/ total
         :param gender: choosing a gender (can be None)
@@ -332,12 +326,16 @@ class DatabaseOperations:
                                               fn.SUM(Person.age).alias('total_age')).where(Person.gender == gen)
             return query_avg_male_female
 
-        if  genderr == None:
+        if  gen_call == None:
             query_average_age = Person.select(fn.COUNT(Person.age).alias('total'), fn.SUM(Person.age).alias('total_age'))
-        elif genderr == 'male':
-            query_average_age = gen_query(genderr)
-        elif genderr == 'female':
-            query_average_age = gen_query(genderr)
+
+        elif gen_call == 'male':
+            query_average_age = gen_query(gen_call)
+            result_message = 'male average age -> '
+
+        elif gen_call == 'female':
+            query_average_age = gen_query(gen_call)
+            result_message = 'female average age -> '
 
         #result_final_message = '{0}{1}'.format(result_message, average_total_age)
 
@@ -373,6 +371,7 @@ class DatabaseOperations:
 
     # print('\n')
 
+    # ######################################### ZAD 4
 
     def password_frequency(self, count):
         """
@@ -392,7 +391,7 @@ class DatabaseOperations:
     # print('\n')
 
 
-    # ######################################### ZAD 4
+    # ######################################### ZAD 5
 
     def birth_between(self, start):
         """
@@ -418,7 +417,7 @@ class DatabaseOperations:
     # print('\n')
 
 
-    # ######################################### ZAD 5
+    # ######################################### ZAD 6
 
     def password_rewarder(self, count):
         """
@@ -484,52 +483,88 @@ class DatabaseOperations:
 
 exe_db_operations = DatabaseOperations()
 
-# COMMAND LINE USER INTERFACE
+# COMMAND LINE USER INTERFACE #################################
 @click.group()
 @click.option('--inn', is_flag=True)
-def cli(inn):
+def group_of_opt(inn):
     click.echo()
 
 
-@cli.command(name='init')
+@group_of_opt.command(name='init', help='initializing database')
 def init():
+    """
+    format: python sa_py.py init
+    desc: initializing database
+    """
     return exe_db_operations.initialize_db()
 
-@cli.command(name='insert')
+@group_of_opt.command(name='insert', help='inserting data to database')
 def insert():
+    """
+    format: python sa_py.py insert
+    desc: inserting data to database
+    """
     return exe_db_operations.insert_data()
 
-@cli.command(name='perc')
+@group_of_opt.command(name='gen_perc', help='percentage per gender in database')
 def gender_perc():
-    return exe_db_operations.gender_perc()
+    """
+    format: python sa_py.py gen_perc
+    desc: percentage per gender in database
+    """
+    return exe_db_operations.gender_percentage()
 
-@cli.command(name='genderr')
-@click.option('--genderr', default=None, type=str, help='average age of specified gender')
-def avg_gen_age(genderr):
-    return exe_db_operations.average_age(genderr)
+@group_of_opt.command(name='gen_call')
+@click.option('--gen_call', default=None, type=str, help='average age of: total/male/female')
+def avg_gen_age(gen_call):
+    """
+    format1: python sa_py.py gen_call | total average age
+    format2: python sa_py.py gen_call --gen_call male | male average age
+    format3: python sa_py.py gen_call --gen_call female | female average age
+    desc: average age of: total/male/female
+    """
+    return exe_db_operations.average_age(gen_call)
 
 
-@cli.command(name='city')
-@click.option('--count', default=1, type=int, help='most common city')
+@group_of_opt.command(name='city')
+@click.option('--count', default=1, type=int, help='most common city/ies')
 def most_common_city(count):
+    """
+    format1: python sa_py.py city | most common city
+    format2-n: python sa_py.py city --count n | (n = number) n most common cities
+    desc: most common cities
+    """
     return exe_db_operations.city_frequency(count)
 
-@cli.command('pass')
-@click.option('--count', default=1, type=int, help='number of most frequently appearing passwords in password column')
+@group_of_opt.command('pass_com')
+@click.option('--count', default=1, type=int, help='most common password/s')
 def most_common_password(count):
+    """
+    format1: python sa_py.py pass_com | most common password
+    format2-n: python sa_py.py pass_com --count n | (n = number) n most common passwords
+    desc: most common password
+    """
     return exe_db_operations.password_frequency(count)
 
-@cli.command('birth')
-@click.option('--start', '--end', multiple=True, type=str, help='strpngest password')
+@group_of_opt.command('birth')
+@click.option('--start', '--end', multiple=True, type=str, help='birth between --start YYYY-MM-DD --end YYYY-MM-DD')
 def birth_between(start):
+    """
+    format: python sa_py.py birth --start YYYY-MM-DD --end YYYY-MM-DD
+    desc: people who was born between start and end
+    """
     return exe_db_operations.birth_between(start)
 
-@cli.command('passr')
-@click.option('--count', is_flag=True, help='strpngest password')
+@group_of_opt.command('pass_strong')
+@click.option('--count', is_flag=True, help='strongest password')
 def strongest_password(count):
+    """
+    format: python sa_py.py pass_strong
+    desc: strongest password in database
+    """
     return exe_db_operations.password_rewarder(count)
 
 
 if __name__ == '__main__':
-    cli()
+    group_of_opt()
 
