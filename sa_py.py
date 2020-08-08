@@ -318,34 +318,34 @@ class DatabaseOperations:
 
     # ######################################### ZAD 2
 
-    def average_age(self, gender=None):
+    def average_age(self, genderr):
         """
         showing and counting average age of males/ females/ total
         :param gender: choosing a gender (can be None)
         """
         result_message = 'total average age -> '
-        query_average_age = (Person.select(fn.COUNT(Person.id).alias('total'), Person.age.alias('age')).where(
-            (Person.gender == 'male') | (Person.gender == 'female')).group_by(Person.age))
-        query_count = Person.select(Person.id)
+        query_average_age = None
+        average_total_age = None
 
-        if gender is not None:
-            query_average_age = (Person.select(fn.COUNT(Person.id).alias('total'), Person.age.alias('age')).where(
-                Person.gender == gender).group_by(Person.age))
-            query_count = Person.select(Person.gender == gender)
+        def gen_query(gen):
+            query_avg_male_female = Person.select(fn.COUNT(Person.age).alias('total'),
+                                              fn.SUM(Person.age).alias('total_age')).where(Person.gender == gen)
+            return query_avg_male_female
 
-            result_message = 'total {0} average age -> '.format(gender)
+        if  genderr == None:
+            query_average_age = Person.select(fn.COUNT(Person.age).alias('total'), fn.SUM(Person.age).alias('total_age'))
+        elif genderr == 'male':
+            query_average_age = gen_query(genderr)
+        elif genderr == 'female':
+            query_average_age = gen_query(genderr)
 
-        gr_count = 0
-        for i in query_count:
-            gr_count += 1
+        #result_final_message = '{0}{1}'.format(result_message, average_total_age)
 
-        avg_age = 0
-        for rec in query_average_age:
-            gr = rec.total * rec.age
-            avg_age = avg_age + gr
+        for res in query_average_age:
+            average_total_age = res.total_age/res.total
 
-        total_avg_age = (avg_age / gr_count)
-        result_final_message = '{0}{1}'.format(result_message, total_avg_age)
+        result_final_message = '{0}{1}'.format(result_message, average_total_age)
+
         click.echo(result_final_message)
 
 
@@ -503,10 +503,10 @@ def insert():
 def gender_perc():
     return exe_db_operations.gender_perc()
 
-@cli.command(name='gender')
-@click.option('--gender', default=None, type=str, help='average age of specified gender')
-def avg_gen_age(gender=None):
-    return exe_db_operations.average_age(gender)
+@cli.command(name='genderr')
+@click.option('--genderr', default=None, type=str, help='average age of specified gender')
+def avg_gen_age(genderr):
+    return exe_db_operations.average_age(genderr)
 
 
 @cli.command(name='city')
