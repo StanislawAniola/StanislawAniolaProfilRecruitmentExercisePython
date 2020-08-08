@@ -20,10 +20,23 @@ def get_data_from_api():
     result = requests.get(url)
     api_content = json.loads(result.content)
 
+    return api_content
     # print(api_content)
 
 # get_data_from_api()
 
+def process_api_data(n=100):
+
+    data_list = []
+    for num in range(n):
+        for row in get_data_from_api()['results']:
+            data_list.append(row)
+
+    main_dict = {}
+    main_dict['results'] = data_list
+
+    return main_dict
+#data_from_api = process_api_data()
 
 # #########################################
 def get_data_from_file():
