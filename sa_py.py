@@ -272,7 +272,211 @@ def insert_data():
     for i in ready_data:
         Person.insert_many(i).execute()
 
-
 # insert_data()
+
+
+# ######################################### ZAD1
+@cli.command(name='perc')
+def gender_perc():
+    """
+    showing and counting percentage of males and females in data
+    :return:
+    """
+    cnt = 0
+    for gen in Person.select():
+        cnt += 1
+
+    male_cnt = 0
+    female_cnt = 0
+    for sex in Person.select():
+        if sex.gender == "male":
+            male_cnt += 1
+        elif sex.gender == "female":
+            female_cnt += 1
+
+    male_perc = (male_cnt * 100) / cnt
+    female_perc = (female_cnt * 100) / cnt
+
+    result = 'male: {0}% \nfemale: {1}%'.format(male_perc, female_perc)
+    click.echo(result)
+
+
+# print(gender_perc())
+
+# print('\n')
+
+
+# ######################################### ZAD 2
+@cli.command(name='gender')
+@click.option('--gender', default=None, type=str, help='average age of specified gender')
+def average_age(gender=None):
+    """
+    showing and counting average age of males/ females/ total
+    :param gender: choosing a gender (can be None)
+    """
+    result_message = 'total average age -> '
+    query_average_age = (Person.select(fn.COUNT(Person.id).alias('total'), Person.age.alias('age')).where(
+        (Person.gender == 'male') | (Person.gender == 'female')).group_by(Person.age))
+    query_count = Person.select(Person.id)
+
+    if gender is not None:
+        query_average_age = (Person.select(fn.COUNT(Person.id).alias('total'), Person.age.alias('age')).where(
+            Person.gender == gender).group_by(Person.age))
+        query_count = Person.select(Person.gender == gender)
+
+        result_message = 'total {0} average age -> '.format(gender)
+
+    gr_count = 0
+    for i in query_count:
+        gr_count += 1
+
+    avg_age = 0
+    for rec in query_average_age:
+        gr = rec.total * rec.age
+        avg_age = avg_age + gr
+
+    total_avg_age = (avg_age / gr_count)
+    result_final_message = '{0}{1}'.format(result_message, total_avg_age)
+    click.echo(result_final_message)
+
+
+# average_age()
+
+# print('\n')
+
+
+# ######################################### ZAD 3
+@cli.command(name='city')
+@click.option('--count', default=None, type=str, help='most common city')
+def city_frequency(count):
+    """
+    counting most common cities in data
+    :param count: how many cities to display
+    """
+    query = Person.select(fn.COUNT(Person.city).alias('city_count'), Person.city).group_by(Person.city).order_by(
+        fn.COUNT(Person.city).desc()).limit(count)
+
+    for c in query:
+        result_messgae = '{0} -> {1}'.format(c.city, c.city_count)
+        click.echo(result_messgae)
+
+
+# city_frequency(5)
+
+# print('\n')
+
+@cli.command('pass')
+@click.option('--count', default=1, type=int, help='number of most frequently appearing passwords in password column')
+def password_frequency(count):
+    """
+    counting most common passwords in data
+    :param count: how many passwords to display
+    """
+    query = Person.select(fn.COUNT(Person.password).alias('pass_count'), Person.password).group_by(
+        Person.password).order_by(
+        fn.COUNT(Person.password).desc()).limit(count)
+
+    for p in query:
+        click.echo('{0} -> {1}'.format(p.password, p.pass_count))
+
+
+# password_frequency(5)
+
+# print('\n')
+
+
+# ######################################### ZAD 4
+@cli.command('birth')
+@click.option('--start', '--end', multiple=True, type=str, help='strpngest password')
+def birth_between(start):
+    """
+    showing how many people were born in specified date range
+    :param start: start date in format (%Y-%m-%d)
+    :param end: end date in format (%Y-%m-%d)
+    """
+    date_l = list(start)
+    start_date = date_l[0]
+    end_date = date_l[1]
+
+    start_date = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = datetime.strptime(end_date, '%Y-%m-%d')
+    query = Person.select(Person.first, Person.last).where(
+        (fn.DATE(Person.date) >= start_date) & (fn.DATE(Person.date) <= end_date))
+
+    for i in query:
+        print(i.first, ' ', i.last)
+
+
+# birth_between('1990-06-01', '1993-06-01')
+
+# print('\n')
+
+
+# ######################################### ZAD 5
+@cli.command('passr')
+@click.option('--count', is_flag=True, help='strpngest password')
+def password_rewarder(count):
+    """
+    showing the strongest password that meets the condictions
+    :param count:
+    """
+    query = Person.select(fn.COUNT(Person.password).alias('pass_count'), Person.password).group_by(Person.password)
+
+    d_test = {}
+
+    for i in query:
+        d_test[i.password] = {'flag': None}
+
+    for k, v in d_test.items():
+        lista = []
+        for l in k:
+            if l.islower():
+                lista.append('low')
+            elif l.isupper():
+                lista.append('upp')
+            elif l.isdigit():
+                lista.append('dig')
+        if len(k) >= 8:
+            lista.append('l8')
+        if not k.isalnum():
+            lista.append('sp')
+        v['flag'] = (set(lista))
+        v['flag'] = list(v['flag'])
+
+    for k in d_test:
+        score = 0
+        for l in d_test[k]:
+            if 'low' in d_test[k][l]:
+                score += 1
+            if 'upp' in d_test[k][l]:
+                score += 2
+            if 'dig' in d_test[k][l]:
+                score += 1
+            if 'l8' in d_test[k][l]:
+                score += 5
+            if 'sp' in d_test[k][l]:
+                score += 3
+        d_test[k] = score
+
+    v = list(d_test.values())
+    k = list(d_test.keys())
+    key_max = k[v.index(max(v))]
+    val_max = d_test[key_max]
+
+    l_max_dict = {}
+
+    # for i in range(0, count+1):
+    for i in d_test:
+        if d_test[i] == val_max:
+            l_max_dict[i] = d_test[i]
+        # val_max -= 1
+
+    for i in l_max_dict:
+        print(i, ' -> ', '{0} pkt.'.format(l_max_dict[i]))
+
+
+# password_rewarder()
+
+
 if __name__ == '__main__':
     cli()
