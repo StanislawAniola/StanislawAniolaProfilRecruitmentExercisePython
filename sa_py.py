@@ -36,8 +36,7 @@ def get_data_from_file():
     getting data from persons.json file
     :return: list of dicts with data from path
     """
-    path = open("persons.json", 'r',
-                encoding='utf-8')
+    path = open("persons.json", 'r', encoding='utf-8')
 
     result = json.load(path)
     return result
