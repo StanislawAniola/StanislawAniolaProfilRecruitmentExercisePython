@@ -274,3 +274,5 @@ def insert_data():
 
 
 # insert_data()
+if __name__ == '__main__':
+    cli()
