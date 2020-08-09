@@ -1,5 +1,5 @@
 # StanislawAniolaProfilRecruitmentExercisePython
-Repository contains python script needed in Profil recruitment process.
+Repository contains python script needed in Profil Software recruitment process.
 
 1. Download Project:
 git clone https://github.com/StanislawAniola/StanislawAniolaProfilRecruitmentExercisePython.git
