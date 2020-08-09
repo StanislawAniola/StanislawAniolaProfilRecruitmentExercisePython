@@ -50,7 +50,17 @@ def get_data_from_file():
     return result
 
 
-data_from_file = get_data_from_file()
+#data_from_file = get_data_from_file()
+
+def choose_api_file(source='file', n=100):
+    data_source = None
+    if source == 'file':
+        data_source = get_data_from_file()
+    elif source == 'api':
+        data_source = process_api_data(n)
+    return data_source
+
+api_file = choose_api_file()
 
 
 # #########################################
@@ -128,14 +138,14 @@ class PrepareDate:
         return file_data
 
     def get_prepared_data(self):
-        clean_birthday = PrepareDate(data_from_file).birthday_days_left(self.raw_data)
-        clean_phone_number = PrepareDate(data_from_file).phone_number_clean(clean_birthday)
-        clean_picture = PrepareDate(data_from_file).remove_picture(clean_phone_number)
+        clean_birthday = PrepareDate(self.raw_data).birthday_days_left(self.raw_data)
+        clean_phone_number = PrepareDate(self.raw_data).phone_number_clean(clean_birthday)
+        clean_picture = PrepareDate(self.raw_data).remove_picture(clean_phone_number)
 
         return clean_picture
 
 
-data_clean = PrepareDate(data_from_file).get_prepared_data()
+data_clean = PrepareDate(api_file).get_prepared_data()
 
 # #########################################
 class SimplifyDataStructure:

@@ -1,10 +1,16 @@
 # StanislawAniolaProfilRecruitmentExercisePython
 Repository contains python script needed in Profil recruitment process.
 
-How to use:
+1.
+Download Project:
 git clone https://github.com/StanislawAniola/StanislawAniolaProfilRecruitmentExercisePython.git
 
+2.
+Install external packages:
+- navigate to where project has been downloaded
+pip install -r requirements.txt
 
+3. inf
 Project use:
 requests,
 json,
@@ -13,22 +19,25 @@ dateutil.parser,
 peewee,
 click
 
-How to use data from api:
-unhastag data_from_api(n)
+4.
+Choose data from file or api:
+line: 63
+api_file = choose_api_file()
 
+enter 'api' into prhenthasis. By default it's 'file'
 
-
-
+5.
 Command Line user options:
 
-Initializig database:
+INITIALIZING DATABASE:
 1. create database
 format: python sa_py.py init
 
 2. inserting data to database
 format: python sa_py.py insert
+__________________________________
 
-
+OPERATIONS ON DATABASE:
 1. procent kobiet i mężczyzn
 format: python sa_py.py gen_perc
 
