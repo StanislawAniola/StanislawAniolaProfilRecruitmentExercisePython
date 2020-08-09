@@ -6,16 +6,16 @@ git clone https://github.com/StanislawAniola/StanislawAniolaProfilRecruitmentExe
 
 2. Install external packages:
 - navigate to where project has been downloaded
-pip install -r requirements.txt
+- pip install -r requirements.txt
 
 3. inf
 Project use:
-requests,
-json,
-datatime,
-dateutil.parser,
-peewee,
-click
+- requests,
+- json,
+- datatime,
+- dateutil.parser,
+- peewee,
+- click
 
 4. Choose data from file or api:
 line: 63
