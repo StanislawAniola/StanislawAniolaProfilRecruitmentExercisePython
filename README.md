@@ -25,14 +25,15 @@ Project use:
 
 5. Command Line user options:
 
+__________________________________
 INITIALIZING DATABASE:
 1. create database
 - format: python sa_py.py init
 
 2. inserting data to database
 - format: python sa_py.py insert
-__________________________________
 
+__________________________________
 OPERATIONS ON DATABASE:
 1. procent kobiet i mężczyzn
 - format: python sa_py.py gen_perc
