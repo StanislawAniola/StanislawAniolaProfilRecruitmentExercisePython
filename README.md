@@ -1,12 +1,10 @@
 # StanislawAniolaProfilRecruitmentExercisePython
 Repository contains python script needed in Profil recruitment process.
 
-1.
-Download Project:
+1. Download Project:
 git clone https://github.com/StanislawAniola/StanislawAniolaProfilRecruitmentExercisePython.git
 
-2.
-Install external packages:
+2. Install external packages:
 - navigate to where project has been downloaded
 pip install -r requirements.txt
 
@@ -19,15 +17,13 @@ dateutil.parser,
 peewee,
 click
 
-4.
-Choose data from file or api:
+4. Choose data from file or api:
 line: 63
 api_file = choose_api_file()
 
 enter 'api' into prhenthasis. By default it's 'file'
 
-5.
-Command Line user options:
+5. Command Line user options:
 
 INITIALIZING DATABASE:
 1. create database
